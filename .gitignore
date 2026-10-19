@@ -1,0 +1,25 @@
+# 归档数据（几十 GB，运行时装在别处即可，见 README「需要什么数据」）
+/Anitama-Backup/
+/originals/
+/epubs/
+/Articles/
+/Media Files/
+/Miscellaneous/
+/_metadata/
+/cdn-7z-volumes/
+
+# 构建产物
+/webui/target/
+__pycache__/
+*.pyc
+
+# 设计过程产物（含从归档抽的横幅/缩略图素材，不公开）
+/design-webui/assets/
+/design-webui/a-study.html
+/design-webui/b-press.html
+/design-webui/c-archive.html
+/design-webui/data/
+/design-webui/explorer/
+/design-webui/shots/
+/design-webui/reference/
+/design-webui/tools/

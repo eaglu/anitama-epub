@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anitama 工坊 · 专题 EPUB 装订台</title>
+<style>
+  :root{
+    --paper:#faf8f3; --paper2:#f3efe7; --card:#fffdf9; --ink:#1f1c18; --sub:#6b655c;
+    --accent:#b08d57; --accent-ink:#7a5c33; --sel:#efe6d6; --line:#e2dbcd; --line2:#d8cfbe;
+    --nav:216px;
+    --serif:"Noto Serif CJK SC","Source Han Serif SC","Songti SC","AR PL UMing CN",serif;
+    --sans:"WenQuanYi Zen Hei","Noto Sans CJK SC","Droid Sans Fallback",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--paper); color:var(--ink);
+    font:13.5px/1.6 var(--sans); overflow:hidden;
+    display:grid; grid-template-columns:var(--nav) 1fr; grid-template-rows:64px 1fr;
+  }
+
+  header{grid-column:1/3; display:flex; align-items:center; gap:22px;
+    padding:0 26px; border-bottom:1px solid var(--line); background:var(--paper)}
+  .brand{font:600 19px/1 var(--serif); letter-spacing:.04em}
+  .brand small{display:block; font:400 11.5px/1.6 var(--sans); color:var(--sub); letter-spacing:.02em; margin-top:3px}
+  .search{margin-left:34px; flex:0 1 300px; position:relative}
+  .search input{width:100%; height:32px; padding:0 12px 0 30px; border:1px solid var(--line2);
+    border-radius:2px; background:var(--card); font:13px var(--sans); color:var(--ink)}
+  .search svg{position:absolute; left:9px; top:9px; opacity:.5}
+  .headstats{margin-left:auto; display:flex; gap:26px; align-items:center; font-size:12.5px; color:var(--sub)}
+  .headstats b{display:block; font:600 16px/1.2 var(--serif); color:var(--ink)}
+
+  nav{border-right:1px solid var(--line); padding:16px 0 90px; overflow:hidden}
+  nav h3{margin:16px 22px 8px; font:400 11.5px/1 var(--sans); color:var(--sub); letter-spacing:.14em}
+  nav a{display:flex; justify-content:space-between; align-items:baseline; padding:7px 22px;
+    color:var(--ink); text-decoration:none; font-size:13.5px; cursor:pointer}
+  nav a span{font:400 12px/1 var(--sans); color:var(--sub)}
+  nav a.on{background:var(--sel); font-weight:600}
+  nav a.on span{color:var(--accent-ink)}
+
+  main{padding:22px 28px 96px; overflow:auto}
+  .titleline{display:flex; align-items:baseline; gap:14px}
+  .titleline h1{margin:0; font:600 25px/1.2 var(--serif); letter-spacing:.02em}
+  .titleline p{margin:0; font-size:12.5px; color:var(--sub)}
+  .filters{display:flex; gap:8px; margin:14px 0 18px; flex-wrap:wrap}
+  .chip{height:28px; padding:0 12px; display:inline-flex; align-items:center; gap:6px;
+    border:1px solid var(--line2); border-radius:2px; background:var(--card);
+    font-size:12.5px; color:var(--ink); cursor:pointer}
+  .chip b{font-weight:400; color:var(--sub)}
+  .chip.on{background:var(--ink); border-color:var(--ink); color:var(--paper)}
+  .chip.act{font-family:inherit; color:var(--accent-ink); border-color:var(--accent-ink)}
+  .chip.act:disabled{color:var(--sub); border-color:var(--line2); cursor:default}
+  .chip.on b{color:#c9c3b8}
+  select.chip{appearance:none; padding-right:22px;
+    background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);
+    background-position:calc(100% - 13px) 12px,calc(100% - 9px) 12px; background-size:4px 4px,4px 4px; background-repeat:no-repeat}
+  select.chip.on{background-color:var(--ink); color:var(--paper); border-color:var(--ink);
+    background-image:linear-gradient(45deg,transparent 50%,#c9c3b8 50%),linear-gradient(135deg,#c9c3b8 50%,transparent 50%)}
+
+  .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:20px}
+  .card{position:relative; cursor:pointer}
+  .card:focus-visible{outline:2px solid var(--accent-ink); outline-offset:3px}
+  .thumb{aspect-ratio:3.09; border:1px solid var(--line2); border-radius:2px;
+    background:var(--paper2); overflow:hidden; position:relative}
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+  .thumb.empty{display:flex; align-items:center; justify-content:center;
+    background:var(--paper2); font:400 21px/1 var(--serif); color:var(--sub); letter-spacing:.06em}
+  .card h2{margin:8px 0 0; font:500 15px/1.5 var(--serif); letter-spacing:.01em;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+  .card p{margin:4px 0 0; font-size:12px; color:var(--sub)}
+  .card p i{font-style:normal; color:var(--line2)}
+  .card.sel .thumb{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
+  .pick{position:absolute; top:7px; left:7px; width:18px; height:18px; border-radius:2px;
+    border:1px solid rgba(255,255,255,.85); background:rgba(31,28,24,.45);
+    color:#fff; font-size:12px; line-height:16px; text-align:center}
+  .card.sel .pick{background:var(--accent); border-color:var(--accent)}
+  .stamp{position:absolute; top:7px; right:7px; padding:1px 7px; border-radius:2px;
+    background:rgba(250,248,243,.94); border:1px solid var(--accent);
+    font:400 10.5px/16px var(--sans); color:var(--accent-ink); letter-spacing:.04em}
+
+  .pager{display:flex; align-items:center; gap:6px; margin-top:20px; font-size:12.5px; color:var(--sub)}
+  .pager .n{margin-right:10px}
+  .pager button{font:inherit; padding:3px 9px; border:1px solid var(--line2); border-radius:2px;
+    background:var(--card); color:var(--ink); cursor:pointer}
+  .pager button.cur{padding:3px 9px; border-color:var(--ink); background:var(--ink);
+    color:var(--paper); font-weight:600}
+  .pager span.gap{padding:0 2px}
+
+  /* 卡片上的「阅读」入口 */
+  .thumb{position:relative}
+  .thumb .rd{position:absolute; right:7px; bottom:7px; padding:1px 7px; border-radius:2px;
+    background:rgba(250,248,243,.93); border:1px solid var(--line2);
+    font:400 10.5px/16px var(--sans); color:var(--accent-ink); letter-spacing:.04em}
+  .card:hover .thumb .rd{border-color:var(--accent); background:#fff}
+
+  /* 在线阅读 */
+  #view-read{overflow:visible; max-height:none}
+  .rd-bar{display:flex; align-items:center; gap:12px; margin:0 0 16px}
+  .rd-bar button{font:inherit; font-size:12.5px; padding:3px 11px; border:1px solid var(--line2);
+    border-radius:2px; background:var(--card); color:var(--accent-ink); cursor:pointer}
+  .rd-bar button:hover{border-color:var(--accent)}
+  .rd-pos{font-size:12.5px; color:var(--sub)}
+  #rd-pick{display:none}
+  .reader{display:grid; grid-template-columns:268px 1fr; gap:30px; align-items:start}
+  .chapters{position:sticky; top:0; max-height:calc(100vh - 240px); overflow:auto;
+    border:1px solid var(--line); background:var(--card); border-radius:2px}
+  .chapters .hd{padding:10px 12px; border-bottom:1px solid var(--line); font-size:12.5px; color:var(--sub)}
+  .chapters a{display:block; padding:9px 12px; border-bottom:1px solid var(--line);
+    text-decoration:none; color:var(--ink); font:500 13.5px/1.5 var(--serif); cursor:pointer}
+  .chapters a:last-child{border-bottom:0}
+  .chapters a:hover{background:var(--paper2)}
+  .chapters a.on{background:var(--sel)}
+  .chapters a .m{display:block; margin-top:3px; font:400 11.5px/1.4 var(--sans); color:var(--sub)}
+  .article{max-width:600px; margin:0 auto; font:15.5px/1.95 var(--serif)}
+  .article h1{margin:0 0 8px; font:600 24px/1.45 var(--serif)}
+  .article .meta{margin:0 0 22px; font:12.5px/1.6 var(--sans); color:var(--sub)}
+  .article p{margin:0 0 16px}
+  .article h2,.article h3{font:600 17px/1.5 var(--serif); margin:28px 0 12px}
+  .article blockquote{margin:0 0 16px; padding:2px 0 2px 15px;
+    border-left:2px solid var(--line2); color:var(--sub)}
+  .article img{max-width:100%; height:auto; display:block; margin:20px auto; border:1px solid var(--line)}
+  .article figure{margin:20px 0}
+  .article ul,.article ol{padding-left:22px; margin:0 0 16px}
+  .article a{color:var(--accent-ink)}
+  .article table{width:100%; border-collapse:collapse; font-size:13.5px}
+  .article td,.article th{border:1px solid var(--line); padding:6px 9px}
+  .rd-nav{display:flex; flex-wrap:wrap; gap:14px; margin:34px 0 0; padding-top:16px;
+    border-top:1px solid var(--line)}
+  .rd-nav a{font-size:13px; color:var(--accent-ink); text-decoration:none; cursor:pointer}
+  .rd-nav a:hover{text-decoration:underline}
+
+  .empty-note{padding:40px 2px; color:var(--sub); font-size:13.5px}
+  .epub-list{border-top:1px solid var(--line)}
+  .epub-row{display:flex; align-items:center; gap:14px; padding:13px 2px; border-bottom:1px solid var(--line)}
+  .epub-row .nm{flex:1; font:500 14.5px/1.5 var(--serif); word-break:break-all}
+  .epub-row .sz,.epub-row .dt{font-size:12px; color:var(--sub); white-space:nowrap}
+  .epub-row a.dl{font-size:12.5px; color:var(--accent-ink); text-decoration:none;
+    border:1px solid var(--line2); border-radius:2px; padding:3px 11px; background:var(--card)}
+  .jobbox{border:1px solid var(--line); border-radius:2px; background:var(--card); padding:14px 16px; margin-bottom:14px}
+  .jobbox .jh{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .jobbox .jh b{font:600 15px/1.4 var(--serif)}
+  .jobbox .jh em{font-style:normal; font-size:12px; color:var(--sub)}
+  .jobbox .jt{margin-top:6px; font-size:12.5px; color:var(--sub)}
+  .log{margin-top:12px; font:13px/1.75 var(--sans); color:var(--sub); white-space:pre-wrap;
+    background:var(--paper2); border:1px solid var(--line); border-radius:2px;
+    padding:12px 14px; max-height:52vh; overflow:auto}
+  .log .ln{display:block}
+  .log b{color:var(--ink); font-weight:600}
+  .log i{font-style:normal; color:var(--accent-ink)}
+
+  .cart{position:fixed; left:var(--nav); right:0; bottom:0; height:72px; display:flex; align-items:center;
+    gap:16px; padding:0 28px; background:var(--card); border-top:1px solid var(--line2)}
+  .cart .bar{position:absolute; left:0; right:0; top:-1px; height:2px; background:transparent}
+  .cart .bar i{display:block; height:2px; width:0; background:var(--accent); transition:width .3s}
+  .cart .label{flex:0 0 auto; white-space:nowrap; font:600 15px/1.3 var(--serif)}
+  .cart .label small{display:block; font:400 13px/1.45 var(--sans); color:var(--sub)}
+  .cart .msum{display:none}
+  .cart .tickets{display:flex; gap:8px; margin-left:6px; overflow:hidden; flex:1 1 auto; min-width:0}
+  .cart .tickets.many .ticket{max-width:150px}
+  .ticket{display:flex; align-items:center; gap:7px; height:30px; padding:0 6px 0 10px;
+    border:1px dashed var(--line2); border-radius:2px; font-size:12.5px; max-width:230px}
+  .ticket span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .ticket u{text-decoration:none; color:var(--sub); font-size:14px; cursor:pointer}
+  .ticket.more{border-style:solid; border-color:transparent; color:var(--sub); white-space:nowrap; padding:0 2px}
+  .cart .opts{display:flex; gap:12px; font-size:12.5px; color:var(--sub); margin-right:4px; flex:0 0 auto; white-space:nowrap}
+  .cart .opts label{display:flex; align-items:center; gap:5px; cursor:pointer; white-space:nowrap}
+  .cart .est{margin-left:auto; text-align:right; font-size:12px; color:var(--sub); line-height:1.5; flex:0 0 auto; white-space:nowrap}
+  .cart .est b{display:block; color:var(--ink); font-weight:600; font-size:13px}
+  button.go{height:38px; padding:0 22px; border:1px solid var(--ink); border-radius:2px; flex:0 0 auto;
+    background:var(--ink); color:var(--paper); font:600 14px var(--sans); letter-spacing:.05em; cursor:pointer}
+  button.go:disabled{background:var(--line2); border-color:var(--line2); color:var(--paper); cursor:default}
+  button.ghost{height:38px; padding:0 16px; border:1px solid var(--line2); border-radius:2px; flex:0 0 auto;
+    background:transparent; color:var(--ink); font:400 13.5px var(--sans); cursor:pointer}
+
+  /* ---------- 移动端 ---------- */
+  /* 桌面窗口变窄时自适应：侧栏收窄、卡片列数递减、阅读器目录退成下拉 */
+  @media (max-width:1320px){
+    .grid{grid-template-columns:repeat(3,1fr)}
+  }
+  @media (max-width:1100px){
+    :root{--nav:176px}
+    header{gap:16px; padding:0 20px}
+    .search{margin-left:16px}
+    .headstats{gap:18px}
+    main{padding:20px 22px 96px}
+    .reader{grid-template-columns:220px 1fr; gap:22px}
+    .cart .est{display:none}
+  }
+  @media (max-width:900px){
+    :root{--nav:152px}
+    nav h3{margin:14px 16px 6px}
+    nav a{padding:7px 16px}
+    .grid{grid-template-columns:repeat(2,1fr); gap:16px}
+    .headstats{gap:14px}
+    .reader{grid-template-columns:1fr; gap:0}
+    .chapters{display:none}
+    #rd-pick{display:block; width:100%; margin:0 0 16px}
+    .article{max-width:none}
+  }
+  @media (max-width:820px){
+    .cart{padding:0 16px; gap:10px}
+    .cart .label small{display:none}
+    .headstats{gap:12px}
+    .brand{flex:0 0 auto; white-space:nowrap}
+    .search{flex:0 1 200px; margin-left:0}
+  }
+  @media (max-width:720px){
+    .cart .opts{display:none}
+    .brand small{display:none}
+  }
+
+  @media (max-width:640px){
+    body{display:block; overflow:auto; padding-bottom:126px}
+    header{position:sticky; top:0; z-index:30; height:56px; gap:10px; padding:0 16px}
+    .brand{font:600 16px/1 var(--serif); white-space:nowrap}
+    .brand small{display:none}
+    .search{margin-left:0; flex:1 1 auto}
+    .search input{height:30px; font-size:12.5px}
+    .headstats{display:none}
+
+    nav{position:fixed; left:0; right:0; bottom:0; z-index:40; height:54px; display:flex;
+      align-items:center; padding:0; border-right:0; border-top:1px solid var(--line2);
+      background:var(--card)}
+    nav h3{display:none}
+    nav a{flex:1; flex-direction:column; justify-content:center; align-items:center; gap:4px;
+      padding:0; font-size:11.5px; line-height:1}
+    nav a span{font-size:10.5px}
+    nav a.on{background:transparent; color:var(--accent-ink)}
+
+    main{padding:16px 16px 136px; overflow:visible}
+    .titleline{display:block}
+    .titleline h1{font-size:21px}
+    .titleline p{display:none}
+    .filters{margin:10px 0 14px; gap:6px; flex-wrap:nowrap; overflow-x:auto}
+    .chip{flex:0 0 auto; height:26px; padding:0 10px; font-size:12px}
+    select.chip{padding-right:20px; background-position:calc(100% - 11px) 11px,calc(100% - 7px) 11px}
+    .grid{grid-template-columns:1fr 1fr; gap:12px}
+    .card h2{font-size:13.5px; margin-top:6px}
+    .card p{font-size:12px}
+    .thumb.empty{font-size:15px}
+    .pager{margin-top:16px; gap:5px; font-size:11.5px; flex-wrap:wrap}
+    .pager .n{display:block; width:100%; margin:0 0 8px}
+    .epub-row{flex-wrap:wrap; gap:8px}
+    .epub-row .nm{flex:1 0 100%}
+    .log{max-height:none}
+
+    #view-read{overflow:visible; max-height:none}
+    .rd-bar{flex-wrap:wrap; gap:8px}
+    .reader{grid-template-columns:1fr; gap:0}
+    .chapters{display:none}
+    #rd-pick{display:block; width:100%; margin:0 0 16px}
+    .article{max-width:none; font-size:15.5px}
+    .article h1{font-size:20px}
+
+    .cart{left:0; right:0; bottom:54px; height:64px; padding:0 14px; gap:10px}
+    .cart .label{font-size:13.5px}
+    .cart .label small{display:none}
+    .cart .msum{display:block; margin-top:3px; text-decoration:none; font-size:13px; color:var(--sub)}
+    .cart .tickets, .cart .est, .cart .opts, .cart button.ghost{display:none}
+    button.go{height:36px; padding:0 15px; font-size:13px; white-space:nowrap}
+  }
+
+  /* ---------- 动效：纸／索引卡材质（咔嗒 · 流淌 · 滑入） ---------- */
+  /* ① 主操作反馈：按下立即陷下去，松开弹回 */
+  button, .chip:not(select) { transition: transform 80ms linear }
+  button:active, .chip:not(select):active { transform: scale(.97) }
+  button:disabled:active { transform: none }
+  .card { transition: transform 80ms linear }
+  .card:active { transform: scale(.985) }
+
+  @keyframes pickIn { from { transform: scale(.55) } }
+  .card.just .pick { animation: pickIn 160ms cubic-bezier(.2,.9,.3,1.18) }
+
+  @keyframes bump { 35% { transform: scale(1.16); color: var(--accent-ink) } }
+  .bump { display: inline-block; animation: bump 280ms ease-out }
+
+  @keyframes rowIn { from { opacity: 0; transform: translateY(6px) } }
+  .epub-row.in { animation: rowIn 260ms ease-out }
+
+  /* ② 状态切换的来路：书签滑入／滑出，卡片选中描边过渡 */
+  @keyframes slipIn { from { opacity: 0; transform: translateY(9px) scale(.96) } }
+  @keyframes slipOut { to { opacity: 0; transform: translateY(-11px) scale(.96) } }
+  .ticket.in { animation: slipIn 200ms cubic-bezier(.2,.9,.3,1.18) both }
+  .ticket.out { animation: slipOut 130ms ease-in forwards; pointer-events: none }
+  .card .thumb { transition: border-color 160ms, box-shadow 160ms }
+  .thumb .rd { transition: border-color 160ms, background 160ms }
+
+  /* ③ 首次进入的出场：主角先到，其余按顺序跟上（只播一次） */
+  @keyframes cardIn { from { opacity: 0; transform: translateY(8px) } }
+  #grid[data-enter] .card { animation: cardIn 320ms ease-out both;
+    animation-delay: min(calc(var(--i, 0) * 45ms), 480ms) }
+
+  /* 视图切换：流淌 */
+  @keyframes viewIn { from { opacity: 0; transform: translateY(6px) } }
+  #view-grid.enter, #view-epubs.enter, #view-jobs.enter, #view-read.enter { animation: viewIn 220ms ease-out }
+
+  /* 阅读器翻篇：方向一致；到头轻轻顶一下 */
+  @keyframes artInR { from { opacity: 0; transform: translateX(14px) } }
+  @keyframes artInL { from { opacity: 0; transform: translateX(-14px) } }
+  @keyframes nudgeL { 40% { transform: translateX(-7px) } }
+  @keyframes nudgeR { 40% { transform: translateX(7px) } }
+  .article.in-r { animation: artInR 200ms ease-out }
+  .article.in-l { animation: artInL 200ms ease-out }
+  .article.nudge-l { animation: nudgeL 170ms ease-out }
+  .article.nudge-r { animation: nudgeR 170ms ease-out }
+
+  .cart .bar i { transition: width 280ms cubic-bezier(.22,.61,.36,1) }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Anitama 工坊<small id="brand-sub">专题归档</small></div>
+  <div class="search">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#6b655c" stroke-width="1.6">
+      <circle cx="6.8" cy="6.8" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
+    <input id="q" type="search" placeholder="搜索专题、作者、文章标题" aria-label="搜索专题">
+  </div>
+  <div class="headstats">
+    <div><b id="s-articles">—</b>篇文章</div>
+    <div><b id="s-assets">—</b>张素材</div>
+    <div><b id="s-built">—</b>本已装订</div>
+  </div>
+</header>
+
+<nav>
+  <h3>浏览</h3>
+  <a class="on" data-view="grid" href="#"><span class="lb">专题</span> <span id="n-series">—</span></a>
+  <a data-view="epubs" href="#"><span class="lb">已装订</span> <span id="n-built">—</span></a>
+  <a data-view="jobs" href="#"><span class="lb">装订中</span> <span id="n-jobs">—</span></a>
+</nav>
+
+<main>
+  <div class="titleline">
+    <h1 id="view-title">专题</h1>
+    <p id="view-sub">正在读取归档…</p>
+  </div>
+
+  <div id="view-grid">
+    <div class="filters">
+      <span class="chip on" data-f="all">全部 <b id="c-all">—</b></span>
+      <span class="chip" data-f="todo">未装订 <b id="c-todo">—</b></span>
+      <span class="chip" data-f="done">已装订 <b id="c-done">—</b></span>
+      <select class="chip" id="f-channel" aria-label="按栏目筛选"><option value="">栏目 ▾</option></select>
+      <select class="chip" id="f-author" aria-label="按作者筛选"><option value="">作者 ▾</option></select>
+      <select class="chip" id="f-year" aria-label="按年份筛选"><option value="">年份 ▾</option></select>
+      <button class="chip act" id="selall">全选筛出的专题</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="pager" id="pager"></div>
+  </div>
+
+  <div id="view-epubs" hidden>
+    <div class="epub-list" id="epub-list"></div>
+  </div>
+
+  <div id="view-jobs" hidden>
+    <div id="job-list"></div>
+  </div>
+
+  <div id="view-read" hidden>
+    <div class="rd-bar">
+      <button id="rd-back">← 回到专题</button>
+      <div class="rd-pos" id="rd-pos"></div>
+    </div>
+    <select class="chip" id="rd-pick" aria-label="切换篇章"></select>
+    <div class="reader">
+      <aside class="chapters" id="rd-chapters"></aside>
+      <article class="article" id="rd-body"></article>
+    </div>
+  </div>
+</main>
+
+<div class="cart">
+  <div class="bar"><i id="bar"></i></div>
+  <div class="label">书车<small id="cart-sum">还没有选专题 · 点卡片加入</small><u class="msum" id="cart-msum"></u></div>
+  <div class="tickets" id="tickets"></div>
+  <div class="opts">
+    <label><input type="checkbox" id="opt-images" checked> 图片内嵌</label>
+    <label><input type="checkbox" id="opt-comments" checked> 附评论</label>
+  </div>
+  <div class="est" id="est"><b>—</b>&nbsp;</div>
+  <button class="ghost" id="clear">清空</button>
+  <button class="go" id="go">装订成 EPUB</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
