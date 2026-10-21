@@ -13,7 +13,7 @@ LOG="${LOG:-/tmp/anitama-epub-web.log}"
 BIN=./target/release/anitama-epub-web
 [ -x "$BIN" ] || BIN=./target/debug/anitama-epub-web
 if [ ! -x "$BIN" ]; then
-  echo "还没有编译，先跑：/home/faye/.cargo/bin/cargo build --release" >&2
+  echo "还没有编译，先跑：cargo build --release（在 webui/ 目录里）" >&2
   exit 1
 fi
 

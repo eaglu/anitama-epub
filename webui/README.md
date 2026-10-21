@@ -8,11 +8,11 @@
 
 ## 构建与运行
 
-`cargo` 不在 PATH 里（rustup 装在 `~/.cargo`），用绝对路径或先补 PATH：
+`cargo` 不在 PATH 里（rustup 装在 `~/.cargo`）时，先补 PATH：
 
 ```bash
 cd webui
-/home/faye/.cargo/bin/cargo build --release     # 或 export PATH="$HOME/.cargo/bin:$PATH"
+cargo build --release                          # 没有的话：export PATH="$HOME/.cargo/bin:$PATH"
 ./start.sh                                      # 前台等就绪；已在跑就直接返回
 ./start.sh /other/archive 8096                  # 换归档目录/端口
 ```
@@ -20,7 +20,7 @@ cd webui
 `start.sh` 优先用 `target/release/anitama-epub-web`，没有就退回 debug；日志默认 `/tmp/anitama-epub-web.log`（可用 `LOG=` 改）。
 参数是**归档根目录**（默认 `..`）。启动时会扫一遍 `Anitama-Backup/series/*/*.html` 与 `cdn/`，约 4~7 秒后才监听端口。
 
-生产构建：`/home/faye/.cargo/bin/cargo build --release` → `target/release/anitama-epub-web`。
+生产构建：`cargo build --release` → `target/release/anitama-epub-web`（`cargo build --release --target x86_64-unknown-linux-musl` 可出静态链接版）。
 
 ### 开机自启（systemd 用户服务）
 

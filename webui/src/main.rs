@@ -55,6 +55,11 @@ async fn main() -> Result<()> {
         )
         .init();
 
+    if std::env::args().any(|a| a == "-V" || a == "--version") {
+        println!("anitama-epub-web {}", env!("CARGO_PKG_VERSION"));
+        return Ok(());
+    }
+
     let root = std::env::args()
         .nth(1)
         .map(PathBuf::from)
